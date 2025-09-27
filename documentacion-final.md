@@ -11,7 +11,7 @@
 | **Fecha de Creación** | [30/08/2025] |
 | **Última Actualización** | [26/09/2025] |
 | **Autor(es)** | [Angel Ambrocio,Wilson Coc, Josue Car, X] |
-| **Estado** | [Proceso de completación] |
+| **Estado** | [En Desarrollo...] |
 
 ### Historial de Versiones
 
@@ -59,13 +59,13 @@
 - **Infraestructura:** [AWS/Azure/GCP]
 
 ### 1.4 Equipo de Desarrollo
-| Rol | Nombre | Responsabilidades |
-|-----|--------|-------------------|
-| **Team Lead** | [Nombre] | Coordinación general |
-| **Backend Lead** | [Nombre] | Arquitectura de servicios |
-| **Frontend Lead** | [Nombre] | Interfaz de usuario |
-| **DB Architect** | [Nombre] | Diseño de base de datos |
-| **DevOps** | [Nombre] | Despliegue e infraestructura |
+| Equipos | Nombre |
+|-----|--------|
+| **1.** | Analisis Y Diseño |
+| **2.** | Base De Datos |
+| **3.** | Backend |
+| **4.**  | Frontend |
+| **5.**  | Documentacion,pruebas y QA |
 
 ---
 
@@ -228,144 +228,525 @@ DELIMITER ;
 ## 4. DOCUMENTACIÓN DE BACKEND
 
 ### 4.1 Arquitectura de Servicios
+### **Descripción**
+API REST para plataforma de comercio electrónico del sector automotriz que conecta usuarios, proveedores y administradores para la compra y venta de herramientas, repuestos y productos automotrices.
+
+### **Arquitectura**
+- **Backend:** Node.js + Express
+- **Base de datos:** PostgreSQL + Prisma ORM
+- **Autenticación:** JWT + 2FA (TOTP)
+- **Contenedores:** Docker + Docker Compose
+- **Documentación:** Swagger
+- **Testing:** Jest + Supertest
+
+
+## Roles Principales
+- **Usuario**: Puede buscar productos, comprar y ver comercios cercanos.
+- **Proveedor**: Puede registrar su comercio, gestionar su catálogo y stock.
+- **Administrador**: Gestiona usuarios, proveedores y el sistema en general.
+
+## Requisitos Previos
+- Node.js v18 o superior
+- PostgreSQL (con usuario y base de datos creados)
+- npm (incluido con Node.js)
+
+## Instalación
+1. Clona el repositorio e instala dependencias:
+   ```sh
+   git clone https://github.com/junajpu616/backend-umg.git
+   cd backend-umg
+   npm install
+   ```
+
+2. Copia el archivo de variables de entorno y edítalo:
+   ```sh
+   copy .env.example .env
+   ```
+
+3. Genera el cliente de Prisma y aplica migraciones:
+   ```sh
+   npm run prisma:generate
+   npm run prisma:migrate
+   ```
+
+4. (Opcional) Ejecuta el seed para crear un usuario administrador:
+   ```sh
+   npm run seed
+   ```
+
+5. Inicia el servidor:
+   ```sh
+   npm start
+   ```
+   
+## Alternativamente  con Docker
+   
+   ```bash
+# Construir y ejecutar todos los servicios
+docker-compose up --build
+
+# O ejecutar en segundo plano
+docker-compose up -d --build
+```
+
+## Uso
+- La API expone endpoints para autenticación, gestión de usuarios, productos y proveedores.
+- Soporta autenticación JWT y 2FA.
+- Los proveedores pueden gestionar su catálogo y stock desde la plataforma.
+
+### **URLs del proyecto**
+- API: `http://localhost:3000`
+- Documentación: `http://localhost:3000/api-docs`
+- PostgreSQL: `localhost:5433`
+- PgAdmin: `http://localhost:8080`
+- 
+## Notas
+- El sistema está preparado para ser consumido tanto por aplicaciones web como móviles.
+- Asegúrate de configurar correctamente las variables de entorno en el archivo `.env`.   
 
 #### 4.1.1 Estructura de Directorios
 ```
-backend/
-├── src/
-│   ├── controllers/     # Controladores de API
-│   ├── services/        # Lógica de negocio
-│   ├── models/          # Modelos de datos
-│   ├── repositories/    # Acceso a datos
-│   ├── middleware/      # Middleware personalizado
-│   ├── utils/           # Utilidades
-│   └── config/          # Configuraciones
-├── tests/               # Pruebas unitarias
-├── docs/                # Documentación API
-└── scripts/             # Scripts de utilidad
+backend-umg-main/
+├── 📄 .dockerignore                    # Archivos ignorados en Docker build
+├── 📄 .env                             # Variables de entorno (no en repo)
+├── 📄 .env.example                     # Plantilla de variables de entorno
+├── 📄 docker-compose.yml               # Orquestación de contenedores
+├── 📄 dockerfile                       # Imagen Docker del backend
+├── 📄 jest.config.js                   # Configuración de Jest
+├── 📄 package.json                     # Dependencias y scripts NPM
+├── 📄 README-DOCKER.md                 # Guía específica de Docker
+├── 📄 README.md                        # Documentación principal
+│
+├── 📁 .idea/                           # Configuración de IDE
+│   ├── .gitignore
+│   └── vcs.xml
+│
+├── 📁 generated/                       # Cliente generado por Prisma
+│   └── prisma/
+│       ├── client.d.ts                 # Tipos TypeScript
+│       ├── client.js                   # Cliente JavaScript
+│       └── ... (otros archivos generados)
+│
+├── 📁 prisma/                          # Esquema y migraciones de BD
+│   ├── 📄 schema.prisma                # Esquema de base de datos
+│   ├── 📄 seed.js                      # Datos iniciales (admin)
+│   │
+│   └── 📁 migrations/                  # Historial de migraciones
+│       ├── 📄 migration_lock.toml      # Lock de proveedor de BD
+│       ├── 📁 20250813035250_first_migration/
+│       │   └── migration.sql
+│       ├── 📁 20250813041243_init/
+│       │   └── migration.sql
+│       ├── 📁 20250813041625_init/
+│       │   └── migration.sql
+│       ├── 📁 20250813042150_init/
+│       │   └── migration.sql
+│       ├── 📁 20250813042436_init/
+│       │   └── migration.sql
+│       ├── 📁 20250814030555_init/
+│       │   └── migration.sql
+│       ├── 📁 20250814031858_cambiar_precio_decimal/
+│       │   └── migration.sql
+│       ├── 📁 20250920200403_add_user/
+│       │   └── migration.sql
+│       ├── 📁 20250922003236_add_2fa/
+│       │   └── migration.sql
+│       ├── 📁 20250922025244_add_roles_and_providers/
+│       │   └── migration.sql
+│       ├── 📁 20250922031933_simplify_roles/
+│       │   └── migration.sql
+│       └── 📁 20250922035758_add_active_field/
+│           └── migration.sql
+│
+├── 📁 scripts/                         # Scripts de inicialización
+│   └── 📄 docker-init.sh               # Script para Docker
+│
+├── 📁 src/                             # Código fuente principal
+│   ├── 📄 app.js                       # Configuración de Express
+│   ├── 📄 server.js                    # Punto de entrada
+│   ├── 📄 swagger.js                   # Configuración Swagger/OpenAPI
+│   │
+│   ├── 📁 config/                      # Configuraciones
+│   │   └── 📄 prisma.js                # Cliente de Prisma
+│   │
+│   ├── 📁 controllers/                 # Lógica de negocio
+│   │   ├── 📄 admin.controller.js      # Gestión de administradores
+│   │   ├── 📄 auth.controller.js       # Autenticación básica
+│   │   ├── 📄 product.controller.js    # Gestión de productos
+│   │   └── 📄 twofa.controller.js      # Autenticación 2FA
+│   │
+│   ├── 📁 helpers/                     # Funciones auxiliares
+│   │   └── 📄 funciones.js             # Utilidades varias
+│   │
+│   ├── 📁 middleware/                  # Middlewares de autenticación
+│   │   ├── 📄 adminAuth.js             # Autorización de admin
+│   │   ├── 📄 auth.js                  # Autenticación JWT
+│   │   └── 📄 providerAuth.js          # Autorización de proveedor
+│   │
+│   └── 📁 routes/                      # Definición de endpoints
+│       ├── 📄 admin.routes.js          # Rutas administrativas
+│       ├── 📄 auth.routes.js           # Rutas de autenticación
+│       └── 📄 product.routes.js        # Rutas de productos
+│
+└── 📁 tests/                           # Pruebas y testing
+    ├── 📄 setup.js                     # Configuración global de tests
+    ├── 📄 auth.test.js                 # Pruebas de autenticación
+    ├── 📄 basic.test.js                # Pruebas básicas del sistema
+    ├── 📄 performance.test.js          # Pruebas de rendimiento
+    ├── 📄 products.test.js             # Pruebas de productos
+    │
+    └── 📁 helpers/                     # Utilidades para testing
+        └── (archivos auxiliares para pruebas)            # Scripts de utilidad
 ```
+
 
 ### 4.2 APIs Principales
 
-#### 4.2.1 API de Productos
+### **Resumen de Endpoints**
+
+| **Categoría** | **Cantidad** | **Base URL** | **Descripción** |
+|---------------|--------------|--------------|-----------------|
+| 🔐 Autenticación | 4 endpoints | `/api/auth` | Login, registro, perfil, cambio de contraseña |
+| 🔑 2FA | 4 endpoints | `/api/auth/2fa` | Configuración y verificación 2FA |
+| 📦 Productos | 5 endpoints | `/api/products` | Catálogo público y gestión de proveedor |
+| 👨‍💼 Admin | 3 endpoints | `/api/admin` | Gestión de usuarios y administradores |
+
+
+### **API de Autenticación**
+
+```http
+POST /api/auth/register     # Registro (Usuario/Proveedor)
+POST /api/auth/login        # Inicio de sesión
+GET  /api/auth/me          # Perfil del usuario
+POST /api/auth/change-password  # Cambiar contraseña
+```
+
+
 ```javascript
-// GET /api/products
-// Obtener lista de productos con paginación
-app.get('/api/products', async (req, res) => {
-    // Implementación
-});
+// POST /api/auth/register - Registro de usuario/proveedor
+{
+  "name": "Juan Pérez",
+  "email": "juan@example.com",
+  "password": "password123",
+  "role": "PROVEEDOR",
+  "telefono": "12345678",
+  "direccion": "Guatemala City",
+  // Datos específicos para proveedores
+  "nombreComercial": "Ferretería Central",
+  "rfc": "RFC123456789",
+  "latitud": 14.6349,
+  "longitud": -90.5069
+}
 
-// POST /api/products
-// Crear nuevo producto
-app.post('/api/products', async (req, res) => {
-    // Validación y creación
-});
+// POST /api/auth/login - Inicio de sesión
+async function login(req, res) {
+  const { email, password } = req.body;
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: { proveedor: true }
+  });
 
-// PUT /api/products/:id
-// Actualizar producto existente
-app.put('/api/products/:id', async (req, res) => {
-    // Actualización
-});
+  if (!user) return res.status(401).json({ error: "Credenciales inválidas" });
+  
+  const ok = await bcrypt.compare(password, user.passwordHash);
+  if (!ok) return res.status(401).json({ error: "Credenciales inválidas" });
+
+  // Si 2FA está habilitado, retornar token temporal
+  if (user.twoFactorEnabled) {
+    const tmpToken = signTmpToken(user);
+    return res.json({ requires2FA: true, tmpToken });
+  }
+
+  // Token JWT normal
+  const token = jwt.sign(
+    { id: user.id, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+
+  res.json({ token, user, proveedor: user.proveedor });
+}
+
+// GET /api/auth/me - Perfil del usuario autenticado
+// POST /api/auth/change-password - Cambiar contraseña
+```
+
+### **Autenticación 2FA**
+
+```http
+POST /api/auth/2fa/setup        # Configurar 2FA
+POST /api/auth/2fa/enable       # Habilitar 2FA  
+POST /api/auth/2fa/disable      # Deshabilitar 2FA
+POST /api/auth/2fa/verify-login # Completar login con 2FA
+```
+
+
+```javascript
+// POST /api/auth/2fa/setup - Configurar 2FA
+async function setup2FA(req, res) {
+  const userId = req.user.id;
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
+  if (user.twoFactorEnabled) {
+    return res.status(400).json({ error: "2FA ya está habilitado" });
+  }
+
+  const secret = speakeasy.generateSecret({
+    name: `UMG_PROYECT (${user.email})`,
+    length: 20,
+  });
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { twoFactorTempSecret: secret.base32 },
+  });
+
+  const otpauth = secret.otpauth_url;
+  const qrDataUrl = await qrcode.toDataURL(otpauth);
+
+  return res.json({
+    otpauthUrl: otpauth,
+    qr: qrDataUrl,
+    base32: secret.base32,
+  });
+}
+
+// POST /api/auth/2fa/enable - Habilitar 2FA
+// POST /api/auth/2fa/disable - Deshabilitar 2FA  
+// POST /api/auth/2fa/verify-login - Completar login con código 2FA
+```
+
+### **Productos**
+
+```http
+GET  /api/products          # Lista pública de productos
+GET  /api/products/:id      # Producto específico (autenticado)
+POST /api/products          # Crear producto (solo proveedor)
+PUT  /api/products/:id      # Actualizar producto (solo proveedor)
+DELETE /api/products/:id    # Eliminar producto (solo proveedor)
+```
+
+```javascript
+// GET /api/products - Lista pública con filtros
+async function list(req, res) {
+  const { proveedorId, categoria, busqueda } = req.query;
+  const where = {
+    activo: true,
+    ...(proveedorId && { proveedorId: parseInt(proveedorId) }),
+    ...(categoria && { categoria }),
+    ...(busqueda && {
+      OR: [
+        { nombre: { contains: busqueda, mode: 'insensitive' } },
+        { descripcion: { contains: busqueda, mode: 'insensitive' } }
+      ]
+    })
+  };
+
+  const productos = await prisma.producto.findMany({
+    where,
+    include: {
+      proveedor: {
+        select: {
+          nombreComercial: true,
+          latitud: true,
+          longitud: true
+        }
+      }
+    },
+    orderBy: { id: "asc" }
+  });
+  res.json(productos);
+}
+
+// POST /api/products - Crear producto (solo proveedores)
+async function create(req, res) {
+  const { nombre, precio, stock, descripcion, categoria, imagenUrl } = req.body;
+
+  const proveedor = await prisma.proveedor.findUnique({
+    where: { userId: req.user.id }
+  });
+
+  if (!proveedor) {
+    return res.status(403).json({ error: "Solo los proveedores pueden crear productos" });
+  }
+
+  const producto = await prisma.producto.create({
+    data: {
+      nombre, precio, stock: stock || 0, descripcion, categoria, imagenUrl,
+      proveedorId: proveedor.id,
+      activo: true
+    }
+  });
+  res.status(201).json(producto);
+}
+// GET /api/products/:id - Producto específico (autenticado)
+// PUT /api/products/:id - Actualizar producto (solo proveedor propietario)
+// DELETE /api/products/:id - Desactivar producto (soft delete)
+```
+
+### **Administración**
+
+```http
+GET  /api/admin/users           # Listar usuarios (solo admin)
+POST /api/admin/create-admin    # Crear administrador (solo admin)  
+PUT  /api/admin/users/:id/status # Activar/desactivar usuario (solo admin)
+```
+
+
+```javascript
+// GET /api/admin/users - Listar todos los usuarios
+async function listUsers(req, res) {
+  const users = await prisma.user.findMany({
+    include: {
+      proveedor: true
+    }
+  });
+
+  const formattedUsers = users.map(user => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    telefono: user.telefono,
+    direccion: user.direccion,
+    createdAt: user.createdAt,
+    ...(user.proveedor && {
+      proveedor: {
+        id: user.proveedor.id,
+        nombreComercial: user.proveedor.nombreComercial,
+        rfc: user.proveedor.rfc,
+        latitud: user.proveedor.latitud,
+        longitud: user.proveedor.longitud
+      }
+    })
+  }));
+
+  res.json(formattedUsers);
+}
+
+// POST /api/admin/create-admin - Crear nuevo administrador
+async function createAdmin(req, res) {
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: "No autorizado" });
+  }
+
+  const { name, email, password } = req.body;
+  const passwordHash = await bcrypt.hash(password, 12);
+  
+  const admin = await prisma.user.create({
+    data: { name, email, passwordHash, role: 'ADMIN' }
+  });
+
+  res.status(201).json({
+    message: "Administrador creado exitosamente",
+    admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role }
+  });
+}
+
+// PUT /api/admin/users/:id/status - Activar/desactivar usuarios
 ```
 
 #### 4.2.2 Documentación Swagger
-```yaml
-/api/products:
-  get:
-    summary: Obtener productos
-    parameters:
-      - name: page
-        in: query
-        type: integer
-        default: 1
-      - name: limit
-        in: query
-        type: integer
-        default: 10
-      - name: category
-        in: query
-        type: string
-    responses:
-      200:
-        description: Lista de productos
-        schema:
-          type: object
-          properties:
-            data:
-              type: array
-              items:
-                $ref: '#/definitions/Product'
-            pagination:
-              $ref: '#/definitions/Pagination'
-```
+![image](https://hackmd.io/_uploads/H1GVwxShxg.png)
+
+![image](https://hackmd.io/_uploads/rJ2qDerngx.png)
+
+
 
 ### 4.3 Modelos de Datos
-```javascript
-// models/Product.js
-class Product {
-    constructor(data) {
-        this.id = data.id;
-        this.sku = data.sku;
-        this.name = data.name;
-        this.description = data.description;
-        this.price = data.price;
-        this.categoryId = data.category_id;
-        this.supplierId = data.supplier_id;
-        this.active = data.active;
-        this.createdAt = data.created_at;
-        this.updatedAt = data.updated_at;
-    }
+### **Entidades Principales**
 
-    validate() {
-        // Validaciones de negocio
-    }
+#### **👤 User (Usuario Principal)**
+```prisma
+model User {
+  id                Int       @id @default(autoincrement())
+  name              String
+  email             String    @unique
+  password          String    // Hash con bcrypt
+  role              Role      @default(USUARIO)
+  telefono          String
+  direccion         String
+  twoFactorSecret   String?   // Para 2FA
+  twoFactorEnabled  Boolean   @default(false)
+  activo            Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  proveedor         Proveedor?
+}
 
-    static async findById(id) {
-        // Implementación
-    }
+enum Role {
+  ADMIN
+  PROVEEDOR
+  USUARIO
 }
 ```
 
-### 4.4 Servicios de Negocio
-```javascript
-// services/InventoryService.js
-class InventoryService {
-    async updateStock(productId, quantity, operation) {
-        // Lógica para actualizar stock
-        // Validaciones de negocio
-        // Notificaciones de stock bajo
-    }
-
-    async checkLowStock() {
-        // Verificar productos con stock bajo
-    }
-
-    async generateStockReport() {
-        // Generar reporte de inventario
-    }
+#### **🏪 Proveedor (Datos Comerciales)**
+```prisma
+model Proveedor {
+  id               Int       @id @default(autoincrement())
+  nombreComercial  String
+  rfc              String    @unique
+  latitud          Decimal?  // Para geolocalización
+  longitud         Decimal?
+  activo           Boolean   @default(true)
+  
+  userId           Int       @unique
+  user             User      @relation(fields: [userId], references: [id])
+  productos        Producto[]
 }
 ```
 
-### 4.5 Seguridad
-- **Autenticación:** JWT con refresh tokens
-- **Autorización:** RBAC (Role-Based Access Control)
-- **Validación:** Joi/Yup para validación de entrada
-- **Rate Limiting:** Express-rate-limit
-- **CORS:** Configuración restrictiva
-- **Helmet:** Headers de seguridad
+#### **📦 Producto (Catálogo)**
+```prisma
+model Producto {
+  id           Int       @id @default(autoincrement())
+  nombre       String
+  descripcion  String
+  precio       Decimal   @db.Decimal(10, 2)
+  categoria    String
+  stock        Int
+  imagenUrl    String?
+  activo       Boolean   @default(true)
+  
+  proveedorId  Int
+  proveedor    Proveedor @relation(fields: [proveedorId], references: [id])
+  
+  @@index([categoria])
+  @@index([proveedorId])
+}
+```
+
+### **🔗 Relaciones**
+- **User ↔ Proveedor**: Relación 1:1 (opcional)
+- **Proveedor ↔ Producto**: Relación 1:N (un proveedor múltiples productos)
+
+### **✨ Características del Modelo**
+- ✅ **Roles diferenciados**: ADMIN, PROVEEDOR, USUARIO
+- ✅ **Geolocalización**: Latitud/longitud para proveedores
+- ✅ **2FA integrado**: Secret y habilitación en User
+- ✅ **Soft delete**: Campo `activo` en lugar de eliminación física
+- ✅ **Timestamps**: Campos automáticos de creación/actualización
+- ✅ **Índices optimizados**: Para búsquedas frecuentes
+
 
 ### 4.6 Variables de Entorno
 ```bash
-# .env.example
-NODE_ENV=development
+# Variables de entorno de ejemplo para Backend UMG
+# Copia este archivo a .env y completa los valores
+
+# Cadena de conexión a PostgreSQL
+# Formato: postgresql://USUARIO:CONTRASENA@HOST:PUERTO/BASE?schema=public
+DATABASE_URL="postgresql://USER:PASS@localhost:5432/DB_NAME?schema=public"
+
+# Secreto para firmar JWT (cámbialo por uno fuerte en producción)
+JWT_SECRET="cambia_esto_por_un_secreto_seguro"
+
+# Puerto del servidor (opcional; por defecto 3000)
 PORT=3000
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=autopartes_db
-DB_USER=username
-DB_PASS=password
-JWT_SECRET=your-secret-key
-REDIS_URL=redis://localhost:6379
+
+
 ```
 
 ---
@@ -580,7 +961,7 @@ httpClient.interceptors.response.use(
 
 ### 6.2 APIs Externas
 
-#### 6.2.1 Integración con SUNAT (Perú)
+#### 6.2.1 Integración con SUNAT
 ```javascript
 // services/sunatService.js
 class SunatService {
@@ -654,17 +1035,17 @@ class WebSocketService {
 ### 7.1 Ambientes
 
 #### 7.1.1 Desarrollo (Development)
-- **URL:** http://dev.autopartes.local
+- **URL:** localhost
 - **Base de Datos:** PostgreSQL local
 - **Propósito:** Desarrollo y pruebas iniciales
 
 #### 7.1.2 Pruebas (Staging)
-- **URL:** https://staging.autopartes.com
+- **URL:** https://autorepuestos-gt.onrender.com/
 - **Base de Datos:** PostgreSQL en AWS RDS
 - **Propósito:** Testing de integración y UAT
 
 #### 7.1.3 Producción (Production)
-- **URL:** https://autopartes.com
+- **URL:** https://autorepuestos-gt.onrender.com/
 - **Base de Datos:** PostgreSQL en AWS RDS (Multi-AZ)
 - **Propósito:** Sistema en vivo
 
@@ -673,17 +1054,53 @@ class WebSocketService {
 #### 7.2.1 Docker Configuration
 ```dockerfile
 # Dockerfile para Backend
-FROM node:18-alpine
+# Multi-stage build para optimizar el tamaño de la imagen
+FROM node:18-alpine AS base
 
+# Instalar dependencias del sistema necesarias para Prisma
+RUN apk add --no-cache openssl
+
+# Crear directorio de trabajo
 WORKDIR /app
 
+# Copiar archivos de dependencias
 COPY package*.json ./
-RUN npm ci --only=production
+COPY prisma ./prisma/
 
-COPY . .
+# Instalar dependencias
+RUN npm ci --only=production && npm cache clean --force
 
+# Generar cliente de Prisma
+RUN npx prisma generate
+
+# Etapa de producción
+FROM node:18-alpine AS production
+
+# Instalar dependencias del sistema
+RUN apk add --no-cache openssl dumb-init
+
+# Crear usuario no-root para seguridad
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+
+# Crear directorio de trabajo
+WORKDIR /app
+
+# Copiar dependencias desde la etapa base
+COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/generated ./generated
+
+# Copiar código fuente
+COPY --chown=nodejs:nodejs . .
+
+# Cambiar al usuario no-root
+USER nodejs
+
+# Exponer puerto
 EXPOSE 3000
 
+# Comando de inicio con dumb-init para manejo correcto de señales
+ENTRYPOINT ["dumb-init", "--"]
 CMD ["npm", "start"]
 ```
 
@@ -712,354 +1129,565 @@ CMD ["nginx", "-g", "daemon off;"]
 version: '3.8'
 
 services:
-  backend:
-    build: ./backend
-    ports:
-      - "3000:3000"
+  # Servicio de PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: backend-umg-postgres
+    restart: unless-stopped
     environment:
-      - NODE_ENV=production
-      - DB_HOST=db
-    depends_on:
-      - db
-      - redis
-
-  frontend:
-    build: ./frontend
+      POSTGRES_DB: backend_umg
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
     ports:
-      - "80:80"
-    depends_on:
-      - backend
-
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: autopartes
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d backend_umg"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-network
 
-  redis:
-    image: redis:7-alpine
+  # Servicio del Backend
+  backend:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: backend-umg-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres123@postgres:5432/backend_umg?schema=public"
+      JWT_SECRET: "tu_jwt_secreto_super_seguro_cambialo_en_produccion"
+      PORT: 4000
+      NODE_ENV: production
     ports:
-      - "6379:6379"
+      - "4000:4000"
+    volumes:
+      # Para desarrollo, puedes descomentar esta línea para hot reload
+      # - .:/app
+      # - /app/node_modules
+      - ./prisma:/app/prisma
+    networks:
+      - backend-network
+    command: >
+      sh -c "
+        echo 'Esperando a que PostgreSQL esté listo...' &&
+        npx prisma migrate deploy &&
+        echo 'Migraciones aplicadas exitosamente' &&
+        npm start
+      "
 
+  # Servicio opcional para administración de PostgreSQL
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: backend-umg-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    networks:
+      - backend-network
+    # profiles:
+    #   - tools
+
+# Volúmenes para persistencia de datos
 volumes:
   postgres_data:
-```
+    driver: local
 
-### 7.3 Pipeline CI/CD
-
-#### 7.3.1 GitHub Actions
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy to Production
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - run: npm ci
-      - run: npm test
-
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Deploy to AWS
-        run: |
-          # Scripts de despliegue
-```
-
-### 7.4 Monitoreo y Logging
-
-#### 7.4.1 Configuración de Logs
-```javascript
-// utils/logger.js
-const winston = require('winston');
-
-const logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.errors({ stack: true }),
-        winston.format.json()
-    ),
-    transports: [
-        new winston.transports.File({ filename: 'error.log', level: 'error' }),
-        new winston.transports.File({ filename: 'combined.log' })
-    ]
-});
-
-if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston.transports.Console({
-        format: winston.format.simple()
-    }));
-}
-```
-
-#### 7.4.2 Health Checks
-```javascript
-// routes/health.js
-app.get('/health', async (req, res) => {
-    const health = {
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        services: {
-            database: await checkDatabase(),
-            redis: await checkRedis(),
-            external_apis: await checkExternalAPIs()
-        }
-    };
-    
-    res.json(health);
-});
+# Red para comunicación entre contenedores
+networks:
+  backend-network:
+    driver: bridge
 ```
 
 ---
 
 ## 8. DOCUMENTACIÓN DE TESTING
 
-### 8.1 Estrategia de Testing por Capas
+### 8.1 PRUEBAS UNITARIAS E INTEGRACIÓN
 
-#### 8.1.1 Testing de Base de Datos
-```sql
--- tests/database/test_products.sql
--- Test: Verificar integridad referencial
-INSERT INTO categories (name) VALUES ('Test Category');
-SET @category_id = LAST_INSERT_ID();
+### 8.1.1 Testing BACKEND
 
-INSERT INTO products (sku, name, price, category_id) 
-VALUES ('TEST-001', 'Test Product', 99.99, @category_id);
-
--- Verificar que el producto se creó correctamente
-SELECT COUNT(*) as count FROM products WHERE sku = 'TEST-001';
--- Esperado: 1
-
--- Cleanup
-DELETE FROM products WHERE sku = 'TEST-001';
-DELETE FROM categories WHERE id = @category_id;
+### **Framework utilizado**
+```json
+{
+  "jest": "^30.1.3",
+  "supertest": "^7.1.4",
+  "@types/jest": "^30.0.0"
+}
 ```
 
-#### 8.1.2 Testing de Backend
+### **Configuración Jest**
 ```javascript
-// tests/unit/services/productService.test.js
-describe('ProductService', () => {
-    let productService;
+// jest.config.js
+module.exports = {
+  testEnvironment: 'node',
+  coverageDirectory: 'coverage',
+  testMatch: [
+    '**/__tests__/**/*.test.js',
+    '**/?(*.)+(spec|test).js'
+  ],
+  collectCoverageFrom: [
+    'src/**/*.js',
+    '!src/server.js',
+    '!src/swagger.js',
+    '!src/config/prisma.js'
+  ],
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.js']
+};
+```
+
+### 8.1.2 EVIDENCIA CON JEST/SUPERTEST
+### **1. Configuración de Pruebas**
+
+#### **Setup inicial (tests/setup.js)**
+```javascript
+const { prisma } = require('../src/config/prisma');
+
+beforeAll(async () => {
+  // Conectar a base de datos de pruebas
+  await prisma.$connect();
+});
+
+afterAll(async () => {
+  // Limpiar y desconectar
+  await prisma.$disconnect();
+});
+
+// Helper para limpiar datos entre pruebas
+global.cleanupDatabase = async () => {
+  await prisma.producto.deleteMany({});
+  await prisma.proveedor.deleteMany({});
+  await prisma.user.deleteMany({
+    where: { email: { not: 'admin@sistema.com' } }
+  });
+};
+```
+
+
+### **2. Pruebas de Autenticación**
+
+#### **Registro de usuarios (auth.test.js)**
+```javascript
+const request = require('supertest');
+const app = require('../src/app');
+
+describe('POST /api/auth/register', () => {
+  beforeEach(async () => {
+    await global.cleanupDatabase();
+  });
+
+  test('✅ Debe registrar un nuevo usuario básico', async () => {
+    const userData = {
+      name: 'Test User',
+      email: 'test@example.com',
+      password: 'password123',
+      role: 'USUARIO',
+      telefono: '12345678',
+      direccion: 'Ciudad de Guatemala'
+    };
+
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send(userData)
+      .expect(201);
+
+    expect(response.body.token).toBeDefined();
+    expect(response.body.user.email).toBe(userData.email);
+    expect(response.body.user.role).toBe('USUARIO');
+    expect(response.body.proveedor).toBeUndefined();
+  });
+
+  test('✅ Debe registrar un nuevo proveedor con datos completos', async () => {
+    const proveedorData = {
+      name: 'Comercial Test',
+      email: 'proveedor@test.com',
+      password: 'password123',
+      role: 'PROVEEDOR',
+      telefono: '87654321',
+      direccion: 'Zona 10, Guatemala',
+      // Datos específicos de proveedor
+      nombreComercial: 'Comercial XYZ',
+      rfc: 'RFC123456789',
+      latitud: 14.6349,
+      longitud: -90.5069
+    };
+
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send(proveedorData)
+      .expect(201);
+
+    expect(response.body.token).toBeDefined();
+    expect(response.body.user.role).toBe('PROVEEDOR');
+    expect(response.body.proveedor).toBeDefined();
+    expect(response.body.proveedor.nombreComercial).toBe(proveedorData.nombreComercial);
+  });
+
+  test('❌ Debe fallar con email duplicado', async () => {
+    const userData = {
+      name: 'Test',
+      email: 'test@example.com',
+      password: 'password123'
+    };
+
+    // Primer registro
+    await request(app)
+      .post('/api/auth/register')
+      .send(userData)
+      .expect(201);
+
+    // Segundo registro (debería fallar)
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send(userData)
+      .expect(409);
+
+    expect(response.body.error).toContain('ya está registrado');
+  });
+
+  test('❌ Debe fallar sin datos de proveedor requeridos', async () => {
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({
+        name: 'Test',
+        email: 'proveedor@test.com',
+        password: 'password123',
+        role: 'PROVEEDOR'
+        // Faltan: nombreComercial, latitud, longitud
+      })
+      .expect(400);
+
+    expect(response.body.error).toContain('nombreComercial');
+  });
+});
+
+describe('POST /api/auth/login', () => {
+  test('✅ Debe hacer login correctamente', async () => {
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: 'admin@sistema.com',
+        password: 'admin123'
+      })
+      .expect(200);
+
+    expect(response.body.token).toBeDefined();
+    expect(response.body.user.role).toBe('ADMIN');
+  });
+
+  test('✅ Debe requerir 2FA si está habilitado', async () => {
+    // Primero habilitamos 2FA para un usuario de prueba
+    // (este test requeriría setup adicional)
     
-    beforeEach(() => {
-        productService = new ProductService();
-    });
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: 'user_with_2fa@test.com',
+        password: 'password123'
+      })
+      .expect(200);
 
-    describe('createProduct', () => {
-        it('should create a product with valid data', async () => {
-            const productData = {
-                sku: 'TEST-001',
-                name: 'Test Product',
-                price: 99.99,
-                categoryId: 1
-            };
-
-            const result = await productService.createProduct(productData);
-            
-            expect(result.id).toBeDefined();
-            expect(result.sku).toBe('TEST-001');
-        });
-
-        it('should throw error with duplicate SKU', async () => {
-            const productData = {
-                sku: 'EXISTING-SKU',
-                name: 'Test Product',
-                price: 99.99,
-                categoryId: 1
-            };
-
-            await expect(productService.createProduct(productData))
-                .rejects.toThrow('SKU already exists');
-        });
-    });
+    expect(response.body.requires2FA).toBe(true);
+    expect(response.body.tmpToken).toBeDefined();
+  });
 });
 ```
 
-#### 8.1.3 Testing de APIs
+### **3. Pruebas de Productos (products.test.js)**
+
 ```javascript
-// tests/integration/api/products.test.js
-describe('Products API', () => {
-    let server;
-    let authToken;
+describe('Products Management', () => {
+  let proveedorToken;
+  let usuarioToken;
+  let proveedorId;
 
-    beforeAll(async () => {
-        server = await createTestServer();
-        authToken = await getTestAuthToken();
+  beforeAll(async () => {
+    // Crear proveedor
+    const proveedorResponse = await request(app)
+      .post('/api/auth/register')
+      .send({
+        name: 'Proveedor Test',
+        email: 'proveedor@test.com',
+        password: 'password123',
+        role: 'PROVEEDOR',
+        telefono: '12345678',
+        direccion: 'Guatemala',
+        nombreComercial: 'Test Store',
+        rfc: 'RFC123',
+        latitud: 14.6349,
+        longitud: -90.5069
+      });
+    
+    proveedorToken = proveedorResponse.body.token;
+    proveedorId = proveedorResponse.body.proveedor.id;
+
+    // Crear usuario normal
+    const usuarioResponse = await request(app)
+      .post('/api/auth/register')
+      .send({
+        name: 'Usuario Test',
+        email: 'usuario@test.com',
+        password: 'password123'
+      });
+    
+    usuarioToken = usuarioResponse.body.token;
+  });
+
+  describe('GET /api/products (Público)', () => {
+    test('✅ Debe obtener lista de productos sin autenticación', async () => {
+      const response = await request(app)
+        .get('/api/products')
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
     });
 
-    afterAll(async () => {
-        await server.close();
+    test('✅ Debe filtrar por proveedor', async () => {
+      const response = await request(app)
+        .get(`/api/products?proveedorId=${proveedorId}`)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
     });
 
-    describe('GET /api/products', () => {
-        it('should return products list', async () => {
-            const response = await request(server)
-                .get('/api/products')
-                .set('Authorization', `Bearer ${authToken}`)
-                .expect(200);
+    test('✅ Debe filtrar por categoría', async () => {
+      const response = await request(app)
+        .get('/api/products?categoria=herramientas')
+        .expect(200);
 
-            expect(response.body.data).toBeInstanceOf(Array);
-            expect(response.body.pagination).toBeDefined();
-        });
-
-        it('should filter by category', async () => {
-            const response = await request(server)
-                .get('/api/products?category=1')
-                .set('Authorization', `Bearer ${authToken}`)
-                .expect(200);
-
-            response.body.data.forEach(product => {
-                expect(product.categoryId).toBe(1);
-            });
-        });
+      expect(Array.isArray(response.body)).toBe(true);
     });
+  });
+
+  describe('POST /api/products (Solo Proveedores)', () => {
+    test('✅ Proveedor debe poder crear producto', async () => {
+      const productData = {
+        nombre: 'Llave inglesa 12"',
+        descripcion: 'Llave inglesa profesional',
+        precio: 25.50,
+        categoria: 'herramientas',
+        stock: 10,
+        imagenUrl: 'https://example.com/image.jpg'
+      };
+
+      const response = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${proveedorToken}`)
+        .send(productData)
+        .expect(201);
+
+      expect(response.body.nombre).toBe(productData.nombre);
+      expect(parseFloat(response.body.precio)).toBe(productData.precio);
+      expect(response.body.proveedorId).toBe(proveedorId);
+    });
+
+    test('❌ Usuario normal no debe poder crear producto', async () => {
+      const response = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${usuarioToken}`)
+        .send({
+          nombre: 'Test',
+          precio: 10,
+          categoria: 'test'
+        })
+        .expect(403);
+
+      expect(response.body.error).toContain('proveedor');
+    });
+
+    test('❌ Debe fallar sin campos requeridos', async () => {
+      const response = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${proveedorToken}`)
+        .send({
+          // Falta nombre, precio, categoria
+          descripcion: 'Test'
+        })
+        .expect(400);
+
+      expect(response.body.error).toContain('requeridos');
+    });
+  });
 });
 ```
 
-#### 8.1.4 Testing de Frontend
-```jsx
-// tests/components/ProductList.test.jsx
-import { render, screen, waitFor } from '@testing-library/react';
-import { ProductList } from '../components/ProductList';
-import * as productService from '../services/productService';
+### **4. Pruebas de Rendimiento (performance.test.js)**
 
-jest.mock('../services/productService');
-
-describe('ProductList Component', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
-    it('should display products when loaded', async () => {
-        const mockProducts = [
-            { id: 1, name: 'Product 1', price: 99.99 },
-            { id: 2, name: 'Product 2', price: 149.99 }
-        ];
-
-        productService.getProducts.mockResolvedValue({
-            data: mockProducts,
-            pagination: { total: 2 }
-        });
-
-        render(<ProductList />);
-
-        await waitFor(() => {
-            expect(screen.getByText('Product 1')).toBeInTheDocument();
-            expect(screen.getByText('Product 2')).toBeInTheDocument();
-        });
-    });
-
-    it('should display error message on API failure', async () => {
-        productService.getProducts.mockRejectedValue(
-            new Error('API Error')
-        );
-
-        render(<ProductList />);
-
-        await waitFor(() => {
-            expect(screen.getByText(/error/i)).toBeInTheDocument();
-        });
-    });
-});
-```
-
-### 8.2 Testing End-to-End
 ```javascript
-// tests/e2e/sales-flow.spec.js
-describe('Sales Flow', () => {
-    it('should complete a sale from start to finish', async () => {
-        // 1. Login
-        await page.goto('/login');
-        await page.fill('[data-testid="username"]', 'testuser');
-        await page.fill('[data-testid="password"]', 'password');
-        await page.click('[data-testid="login-button"]');
+const request = require('supertest');
 
-        // 2. Navigate to sales
-        await page.click('[data-testid="sales-menu"]');
-        await page.click('[data-testid="new-sale"]');
+const BASE_URL = 'http://localhost:4000';
 
-        // 3. Select customer
-        await page.click('[data-testid="customer-select"]');
-        await page.click('[data-testid="customer-option-1"]');
+describe('⚡ Pruebas de Rendimiento', () => {
 
-        // 4. Add products
-        await page.click('[data-testid="add-product"]');
-        await page.fill('[data-testid="product-search"]', 'brake pad');
-        await page.click('[data-testid="product-result-1"]');
-        await page.fill('[data-testid="quantity"]', '2');
-        await page.click('[data-testid="add-to-cart"]');
+  test('✅ GET /api/products debe responder en menos de 2 segundos', async () => {
+    const startTime = Date.now();
+    
+    const response = await request(BASE_URL)
+      .get('/api/products')
+      .expect(200);
+    
+    const duration = Date.now() - startTime;
+    
+    console.log(`⏱️ Tiempo de respuesta: ${duration}ms`);
+    expect(duration).toBeLessThan(2000);
+  });
 
-        // 5. Process payment
-        await page.click('[data-testid="process-payment"]');
-        await page.click('[data-testid="payment-cash"]');
-        await page.click('[data-testid="complete-sale"]');
+  test('✅ POST /api/auth/login debe responder en menos de 2 segundos', async () => {
+    const startTime = Date.now();
+    
+    const response = await request(BASE_URL)
+      .post('/api/auth/login')
+      .send({
+        email: 'admin@sistema.com',
+        password: 'admin123'
+      })
+      .expect(200);
+    
+    const duration = Date.now() - startTime;
+    
+    console.log(`⏱️ Tiempo de login: ${duration}ms`);
+    expect(duration).toBeLessThan(2000);
+  });
 
-        // 6. Verify success
-        await expect(page.locator('[data-testid="success-message"]'))
-            .toBeVisible();
-    });
+  test('✅ Múltiples requests deben mantener buen rendimiento', async () => {
+    const requests = [];
+    const numRequests = 5;
+
+    for (let i = 0; i < numRequests; i++) {
+      requests.push(
+        request(BASE_URL)
+          .get('/api/products')
+          .expect(200)
+      );
+    }
+
+    const startTime = Date.now();
+    await Promise.all(requests);
+    const totalDuration = Date.now() - startTime;
+
+    console.log(`⚡ ${numRequests} requests paralelos: ${totalDuration}ms`);
+    expect(totalDuration).toBeLessThan(5000);
+  });
 });
 ```
+
 
 ### 8.3 Automatización de Testing
 ```yaml
-# .github/workflows/test.yml
-name: Test Suite
+// Setup global para las pruebas
+const { PrismaClient } = require('@prisma/client');
 
-on: [push, pull_request]
+// Configuración para pruebas
+process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'test-jwt-secret-super-secure';
 
-jobs:
-  unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: npm ci
-      - run: npm run test:unit
-      - run: npm run test:coverage
+// Aumentar timeout para pruebas que involucran API
+jest.setTimeout(10000);
 
-  integration-tests:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - uses: actions/checkout@v3
-      - run: npm run test:integration
+// Configuración global de console para debugging
+global.console = {
+  ...console,
+  log: jest.fn(),
+  debug: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+};
 
-  e2e-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: npm ci
-      - run: npx playwright install
-      - run: npm run test:e2e
+// Setup que se ejecuta antes de todas las pruebas
+beforeAll(async () => {
+  console.log('Iniciando setup de pruebas...');
+});
+
+// Cleanup que se ejecuta después de todas las pruebas
+afterAll(async () => {
+  console.log('✅ Pruebas finalizadas');
+});
 ```
+---
+![image](https://hackmd.io/_uploads/ByFz1-H3ll.png)
+![image](https://hackmd.io/_uploads/BJnE1bH2ll.png)
+![image](https://hackmd.io/_uploads/rk9SJbHneg.png)
 
 ---
+
+
+## COLECCIÓN DE PRUEBAS POSTMAN
+[https://Coleccion en Postman ](https://blue-space-779097.postman.co/workspace/My-Workspace~42d7317f-2e37-4e89-92cd-140e454a01fc/collection/18052337-121bc78c-55c5-423b-8741-1b866afe64f8?action=share&creator=18052337&active-environment=18052337-32d704a4-c088-4cbd-9574-c3bd70cb9442)
+![image](https://hackmd.io/_uploads/SJMy-ZHngg.png)
+
+
+### **Configuración del Environment**
+```json
+{
+  "name": "Backend UMG Local",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "enabled": true
+    },
+    {
+      "key": "admin_email", 
+      "value": "admin@sistema.com",
+      "enabled": true
+    },
+    {
+      "key": "admin_password",
+      "value": "admin123",
+      "enabled": true
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "tmp_token",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "provider_token",
+      "value": "",
+      "enabled": true
+    }
+  ]
+}
+```
+
+##  RESULTADOS Y CONCLUSIONES
+
+### **Comandos para Ejecutar Pruebas**
+
+```bash
+# Instalar dependencias de testing
+npm install --save-dev jest supertest @types/jest
+
+# Crear archivo de configuración Jest
+echo 'module.exports = { testEnvironment: "node" };' > jest.config.js
+
+# Ejecutar todas las pruebas
+npm test
+
+# Ejecutar con cobertura
+npm test -- --coverage
+
+# Ejecutar pruebas específicas
+npm test -- --testNamePattern="auth"
+```
 
 ## 9. DOCUMENTACIÓN DE MANTENIMIENTO
 
